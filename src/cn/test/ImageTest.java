@@ -45,8 +45,6 @@ public class ImageTest
 		    	if (min[0] != null || max != null)
 				{
 		    		System.out.println("Min="+min[0]+",max="+max[0]);
-				}else {
-					System.out.println("No Min/Max values stored in raster.");
 				}
 		    	if (poBand.GetColorTable() != null)
 				{

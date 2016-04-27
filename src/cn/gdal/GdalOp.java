@@ -12,10 +12,21 @@ import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconstConstants;
 import org.gdal.ogr.ogr;
 
+import cn.bean.Plant;
+
 import com.neunn.ne.hdfs.HdfsOperator;
 
 public class GdalOp {
-	public void gdalOp(String fileName_tif, String svmPath, String classifySaveLocalPath, String classifySaveHdfsPath) throws IOException{
+	/**
+	 * 将影像进行分类，保存分类后的影像到HDFS中，并返回植被像元数和非植被像元
+	 * 数组成的类
+	 * @param fileName_tif 要处理影像路径
+	 * @param svmPath 模型路径
+	 * @param classifySaveHdfsPath 经分类后的影像保存到HDFS上路径
+	 * @return plant 植被像元数，非植被像元数
+	 * @throws IOException
+	 */
+	public Plant gdalOp(String fileName_tif, String svmPath, String classifySaveHdfsPath) throws IOException{
 		gdal.AllRegister();
 		ogr.RegisterAll();//记得添加驱动注册 
 		// 为了支持中文路径，请添加下面这句代码  
@@ -127,7 +138,9 @@ public class GdalOp {
 					double cloudContent = plantPixelNum*1.0/totalPixelNum;
 					System.out.println("植被含量百分比    "+cloudContent);
 				}
-				
+			 Plant plant = new Plant();
+			 plant.setPlant(Integer.toString(plantPixelNum));
+			 plant.setNoPlant(Integer.toString(totalPixelNum - plantPixelNum));
 				
 				
 				
@@ -137,7 +150,7 @@ public class GdalOp {
 				Driver drivers=pInputDataset.GetDriver();
 				 String strDriverName = "ESRIShapefile";
 		         org.gdal.ogr.Driver oDriver =ogr.GetDriverByName(strDriverName);
-				//String classifyNamePath = "E:\\JAVA_neunn\\gdalTest\\source\\mask.tiff";
+				String classifySaveLocalPath = "E:\\JAVA_neunn\\gdalTest\\source\\mask.tiff";
 				Dataset pMaskDataSet =drivers.Create( classifySaveLocalPath, xSize,  ySize,1);
 				pMaskDataSet.SetGeoTransform(gt);
 				pMaskDataSet.SetProjection(strProjection);
@@ -149,6 +162,7 @@ public class GdalOp {
 				System.out.println("分类文件 完成   "+classifySaveLocalPath);
 				//上传到HDFS上
 				HdfsOperator.putFileToHdfs(classifySaveLocalPath, classifySaveHdfsPath);
+	return plant;
 	}
 
 }
